@@ -1,9 +1,13 @@
 'use client'
 
 import { useState } from 'react'
-import { CheckCircle2, Loader2 } from 'lucide-react'
+import { ArrowRight, CheckCircle2, Loader2 } from 'lucide-react'
 
 type FormStatus = 'idle' | 'submitting' | 'success' | 'error'
+
+const labelClass = 'mb-2 block text-[11px] font-bold uppercase tracking-[0.2em] text-[var(--slot4-muted-text)]'
+const inputClass =
+  'w-full rounded-xl border border-[var(--editable-border)] bg-[var(--slot4-surface-bg)] px-4 py-3 text-sm text-[var(--slot4-page-text)] outline-none transition placeholder:text-[var(--slot4-soft-muted-text)] focus:border-[var(--slot4-accent)] focus:ring-2 focus:ring-[var(--slot4-accent)]/25'
 
 export function EditableContactLeadForm() {
   const [status, setStatus] = useState<FormStatus>('idle')
@@ -34,55 +38,114 @@ export function EditableContactLeadForm() {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="mt-6 rounded-sm border border-[var(--editable-border)] bg-[var(--slot4-panel-bg)] p-6 md:p-8">
-      <div className="grid gap-4 md:grid-cols-2">
-        <Field name="name" label="Full name" placeholder="Your name" required />
-        <Field name="email" type="email" label="Email address" placeholder="you@example.com" required />
+    <form
+      onSubmit={handleSubmit}
+      className="rounded-2xl border border-[var(--editable-border)] bg-[var(--slot4-surface-bg)] p-6 sm:p-8"
+    >
+      <StepRow index="N°001" label="Who is writing" />
+      <div className="mt-5 grid gap-4 sm:grid-cols-2">
+        <Field name="name" label="Full name" placeholder="Your name" autoComplete="name" required />
+        <Field name="email" type="email" label="Email address" placeholder="you@example.com" autoComplete="email" required />
       </div>
-      <div className="mt-4 grid gap-4 md:grid-cols-2">
-        <Field name="phone" label="Phone number" placeholder="Optional" />
+
+      <div className="mt-8">
+        <StepRow index="N°002" label="Where to route it" />
+      </div>
+      <div className="mt-5 grid gap-4 sm:grid-cols-2">
+        <Field name="phone" label="Phone number" placeholder="Optional" autoComplete="tel" />
         <Field name="subject" label="Subject" placeholder="How can we help?" />
       </div>
-      <label className="mt-4 grid gap-2 text-sm font-semibold text-[var(--slot4-muted-text)]">
-        Message
+
+      <div className="mt-8">
+        <StepRow index="N°003" label="The details" />
+      </div>
+      <div className="mt-5">
+        <label className={labelClass} htmlFor="contact-message">
+          Message
+        </label>
         <textarea
+          id="contact-message"
           name="message"
           required
           rows={6}
           placeholder="Tell us what you need help with..."
-          className="rounded-sm border border-[var(--editable-border)] bg-[var(--slot4-surface-bg)] px-4 py-3 text-base font-medium text-[var(--slot4-page-text)] outline-none transition placeholder:text-[var(--slot4-soft-muted-text)] focus:border-[var(--slot4-accent)]"
+          className={`${inputClass} resize-y leading-7`}
         />
-      </label>
+      </div>
+
       <input name="company" tabIndex={-1} autoComplete="off" className="hidden" aria-hidden="true" />
+
       {message ? (
-        <div className={`mt-5 flex items-start gap-3 rounded-sm px-4 py-3 text-sm font-semibold ${status === 'success' ? 'bg-emerald-950/40 text-emerald-300' : 'bg-red-950/40 text-red-300'}`}>
+        <div
+          aria-live="polite"
+          className={
+            status === 'success'
+              ? 'mt-6 flex items-start gap-3 rounded-xl border border-[var(--slot4-accent)] bg-[var(--slot4-accent)]/15 px-4 py-3 text-sm font-bold text-[var(--slot4-page-text)]'
+              : 'mt-6 flex items-start gap-3 rounded-xl border border-red-300 bg-red-50 px-4 py-3 text-sm font-semibold text-red-700'
+          }
+        >
           {status === 'success' ? <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0" /> : null}
-          <span>{message}</span>
+          <span className="min-w-0 break-words">{message}</span>
         </div>
       ) : null}
+
       <button
         type="submit"
         disabled={status === 'submitting'}
-        className="mt-6 inline-flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-[var(--slot4-accent-fill)] px-6 text-sm font-semibold uppercase tracking-[0.18em] text-[var(--slot4-on-accent)] shadow-[0_8px_24px_rgba(79,70,229,0.28)] transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-70"
+        style={{ background: 'var(--slot4-accent)', color: 'var(--slot4-on-accent)' }}
+        className="mt-6 inline-flex w-full items-center justify-center gap-2 rounded-full px-6 py-3.5 text-sm font-bold transition hover:opacity-80 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-70"
       >
         {status === 'submitting' ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
         Send message
+        {status === 'submitting' ? null : <ArrowRight className="h-4 w-4" />}
       </button>
+
+      <p className="mt-4 text-center text-[11px] font-bold uppercase tracking-[0.18em] text-[var(--slot4-soft-muted-text)]">
+        Routed to the right lane, not a generic inbox
+      </p>
     </form>
   )
 }
 
-function Field({ name, label, type = 'text', placeholder, required = false }: { name: string; label: string; type?: string; placeholder?: string; required?: boolean }) {
+function StepRow({ index, label }: { index: string; label: string }) {
   return (
-    <label className="grid gap-2 text-sm font-semibold text-[var(--slot4-muted-text)]">
-      {label}
+    <div className="flex flex-wrap items-baseline justify-between gap-2 border-b border-[var(--editable-border)] pb-3">
+      <span className="text-[11px] font-bold uppercase tracking-[0.24em] text-[var(--slot4-muted-text)]">{index}</span>
+      <span className="text-[11px] font-bold uppercase tracking-[0.24em] text-[var(--slot4-soft-muted-text)]">{label}</span>
+    </div>
+  )
+}
+
+function Field({
+  name,
+  label,
+  type = 'text',
+  placeholder,
+  required = false,
+  autoComplete,
+}: {
+  name: string
+  label: string
+  type?: string
+  placeholder?: string
+  required?: boolean
+  autoComplete?: string
+}) {
+  const id = `contact-${name}`
+  return (
+    <div className="min-w-0">
+      <label className={labelClass} htmlFor={id}>
+        {label}
+      </label>
       <input
+        id={id}
         name={name}
         type={type}
         required={required}
         placeholder={placeholder}
-        className="h-12 rounded-sm border border-[var(--editable-border)] bg-[var(--slot4-surface-bg)] px-4 text-base font-medium text-[var(--slot4-page-text)] outline-none transition placeholder:text-[var(--slot4-soft-muted-text)] focus:border-[var(--slot4-accent)]"
+        autoComplete={autoComplete}
+        className={inputClass}
       />
-    </label>
+    </div>
   )
 }

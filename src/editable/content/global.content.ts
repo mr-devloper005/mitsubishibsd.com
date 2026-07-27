@@ -7,22 +7,25 @@ export const globalContent = {
     domain: slot4BrandConfig.domain,
     baseUrl: slot4BrandConfig.baseUrl,
   },
+  // Task keys hidden from navigation surfaces (nav, footer, home chips).
+  // Their routes and detail pages keep working — they are only unlinked.
+  hiddenNavTaskKeys: ['profile'],
   nav: {
-    tagline: 'Independent reading platform',
+    tagline: 'Creative freelancer directory',
     primaryLinks: [
-      { label: 'Articles', href: '/articles' },
-      { label: 'Visuals', href: '/image-sharing' },
+      { label: 'Images', href: '/image-sharing' },
+      { label: 'Profiles', href: '/profiles' },
       { label: 'Listings', href: '/listings' },
       { label: 'Contact', href: '/contact' },
     ],
     actions: {
-      primary: { label: 'Start exploring', href: '/' },
-      secondary: { label: 'Submit', href: '/contact' },
+      primary: { label: 'Browse talent', href: '/' },
+      secondary: { label: 'Post your work', href: '/create' },
     },
   },
   footer: {
-    tagline: 'Stories, resources, and discoverable posts',
-    description: 'A connected publishing surface for articles, visuals, listings, profiles, bookmarks, and downloadable resources.',
+    tagline: 'Creative freelancer directory',
+    description: 'Browse images, portfolios, and professional profiles from independent freelancers across every creative discipline.',
     columns: [
       {
         title: 'Explore',

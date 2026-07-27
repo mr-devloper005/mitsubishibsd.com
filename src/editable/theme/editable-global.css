@@ -12,10 +12,11 @@
   Do not add data fetching, scripts, or route logic here.
 */
 
-@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700;800&family=Inter:wght@400;500;600;700&display=swap');
+/* Primary display + body typefaces */
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,opsz,wght@0,6..30,400;0,6..30,500;0,6..30,600;0,6..30,700;0,6..30,800;1,6..30,400&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&display=swap');
 
-/* Per-task display + body typefaces (consumed via task-themes.ts). */
-@import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Space+Grotesk:wght@400;500;600;700&family=Sora:wght@400;500;600;700;800&family=Syne:wght@500;600;700;800&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,500;12..96,600;12..96,700;12..96,800&display=swap');
+/* Supplemental typefaces (used in task-themes and editorial components) */
+@import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Space+Grotesk:wght@400;500;600;700&family=Syne:wght@500;600;700;800&family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,500;12..96,600;12..96,700;12..96,800&display=swap');
 @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Serif:wght@400;500;600;700&display=swap');
 
 body {
@@ -25,21 +26,17 @@ body {
 }
 
 .editable-site-root {
-  /* Yelp-style clean sans, used for both display and body. */
-  --editable-font-display: 'Inter', system-ui, -apple-system, 'Helvetica Neue', Arial, sans-serif;
-  --editable-font-body: 'Inter', system-ui, -apple-system, 'Helvetica Neue', Arial, sans-serif;
-  /* Premium easing curve used across every hover + transition. */
+  /* WEMBS-inspired: Plus Jakarta Sans for bold display, DM Sans for crisp body copy */
+  --editable-font-display: 'Plus Jakarta Sans', system-ui, -apple-system, 'Helvetica Neue', Arial, sans-serif;
+  --editable-font-body: 'DM Sans', system-ui, -apple-system, 'Helvetica Neue', Arial, sans-serif;
+  /* Premium easing used across every hover + transition */
   --ease-premium: cubic-bezier(0.22, 1, 0.36, 1);
   font-family: var(--editable-font-body);
 }
 
 /*
   Site-wide premium motion.
-
-  1. Unify the easing of every existing transition/hover to one refined curve.
-  2. Add a smooth "post open" entry animation that replays on each navigation
-     (driven by EditablePageMotion remounting the content per route).
-  Durations stay defined per-component via Tailwind utilities.
+  Unify easing on all transitions, add smooth page-entry animation.
 */
 .editable-site-root *,
 .editable-site-root *::before,
@@ -50,7 +47,7 @@ body {
 @keyframes editable-enter {
   from {
     opacity: 0;
-    transform: translate3d(0, 22px, 0);
+    transform: translate3d(0, 28px, 0);
   }
   to {
     opacity: 1;
@@ -58,10 +55,8 @@ body {
   }
 }
 
-/* The content region rises + fades on open; `backwards` clears the transform
-   afterwards so sticky sidebars keep working. */
 .editable-enter > * {
-  animation: editable-enter 0.6s var(--ease-premium) backwards;
+  animation: editable-enter 0.7s var(--ease-premium) backwards;
   will-change: transform, opacity;
 }
 
@@ -83,7 +78,7 @@ body {
 .editable-site-root h4,
 .editable-display {
   font-family: var(--editable-font-display);
-  letter-spacing: -0.02em;
+  letter-spacing: -0.04em;
 }
 
 .editable-site-root p,
@@ -97,27 +92,73 @@ body {
 }
 
 ::selection {
-  background: color-mix(in oklab, var(--slot4-accent-fill) 28%, transparent);
+  background: color-mix(in oklab, var(--slot4-accent-fill) 32%, transparent);
   color: var(--slot4-page-text);
 }
 
+::-webkit-scrollbar {
+  width: 5px;
+}
+
 ::-webkit-scrollbar-track {
-  background: color-mix(in oklab, var(--slot4-page-bg) 88%, black);
+  background: var(--slot4-page-bg);
 }
 
 ::-webkit-scrollbar-thumb {
-  background: color-mix(in oklab, var(--slot4-accent) 45%, transparent);
+  background: color-mix(in oklab, var(--slot4-accent) 48%, transparent);
   border-radius: 999px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: color-mix(in oklab, var(--slot4-accent) 68%, transparent);
+  background: var(--slot4-accent);
+}
+
+/* Footer marquee */
+@keyframes editable-marquee {
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
+}
+
+.editable-marquee {
+  animation: editable-marquee 28s linear infinite;
+  will-change: transform;
+}
+
+/* Scroll-driven progress bar (progressive enhancement — Chrome 115+, Firefox 130+) */
+@supports (animation-timeline: scroll()) {
+  .scroll-progress-bar {
+    transform-origin: left center;
+    transform: scaleX(0);
+    animation: scroll-scale-x linear;
+    animation-timeline: scroll(root block);
+  }
+  @keyframes scroll-scale-x {
+    from { transform: scaleX(0); }
+    to { transform: scaleX(1); }
+  }
 }
 
 .article-content h2 {
-  color: var(--slot4-accent);
+  color: var(--slot4-page-text);
+  letter-spacing: -0.03em;
 }
 
+/* Links use the text-safe accent ink, not the lime fill — lime text on a light
+   surface is effectively invisible. The lime shows up as the underline instead. */
 .article-content a {
-  color: var(--slot4-accent-fill);
+  color: var(--slot4-accent-ink);
+  font-weight: 600;
+  text-decoration: underline;
+  text-decoration-color: var(--slot4-accent);
+  text-decoration-thickness: 2px;
+  text-underline-offset: 3px;
+}
+
+.article-content a:hover {
+  background: color-mix(in oklab, var(--slot4-accent) 30%, transparent);
+}
+
+/* Editorial divider line used in homepage sections */
+.editorial-rule {
+  border-color: var(--editable-border);
 }

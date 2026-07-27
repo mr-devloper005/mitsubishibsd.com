@@ -2,13 +2,16 @@ import type { CSSProperties } from 'react'
 import type { TaskKey } from '@/lib/site-config'
 
 /*
-  Yelp-style task surfaces.
+  Task surfaces (archive + detail).
 
-  Every task (archive + detail) now shares one cohesive premium identity:
-  clean white surfaces, the signature Yelp red accent, hairline gray borders
-  and a single crisp sans-serif — exactly like Yelp. Per-task copy (kicker /
-  note) still varies so each section keeps a little voice, but the visual
-  language is unified. Tokens are delivered via CSS variables (`--tk-*`).
+  Every task shares one cohesive editorial identity: warm cream surfaces, the
+  signature lime accent, hairline borders, and the Plus Jakarta Sans / DM Sans
+  pairing used across the site. Per-task copy (kicker / note) still varies so
+  each section keeps a little voice, but the visual language is unified.
+  Tokens are delivered via CSS variables (`--tk-*`).
+
+  NOTE: `onAccent` must stay dark — the lime accent is a light color, so light
+  text on it would fail contrast.
 */
 
 export type TaskTheme = {
@@ -32,34 +35,35 @@ export type TaskTheme = {
   radius: string
 }
 
-const YELP_FONT = "'Inter', system-ui, -apple-system, 'Helvetica Neue', Arial, sans-serif"
+const FONT_DISPLAY = "'Plus Jakarta Sans', system-ui, -apple-system, 'Helvetica Neue', Arial, sans-serif"
+const FONT_BODY = "'DM Sans', system-ui, -apple-system, 'Helvetica Neue', Arial, sans-serif"
 
-// Shared Yelp palette — every task inherits this; only kicker/note differ.
+// Shared palette — every task inherits this; only kicker/note differ.
 const base = {
   dark: false,
-  fontDisplay: YELP_FONT,
-  fontBody: YELP_FONT,
-  bg: '#ffffff',
-  surface: '#ffffff',
-  raised: '#f7f7f7',
-  text: '#1a1a1a',
-  muted: '#6b6b6b',
-  line: '#e6e6e6',
-  accent: '#d32323',
-  accentSoft: '#fdecec',
-  onAccent: '#ffffff',
-  glow: 'rgba(211,35,35,0.06)',
-  radius: '0.75rem',
+  fontDisplay: FONT_DISPLAY,
+  fontBody: FONT_BODY,
+  bg: '#f0ece5',
+  surface: '#faf8f3',
+  raised: '#e8e4db',
+  text: '#0d0d0d',
+  muted: '#6b6560',
+  line: '#d8d3ca',
+  accent: '#a8ff5c',
+  accentSoft: '#dcffb0',
+  onAccent: '#0d0d0d',
+  glow: 'rgba(168,255,92,0.10)',
+  radius: '1rem',
 } satisfies Omit<TaskTheme, 'kicker' | 'note'>
 
 export const taskThemes: Record<TaskKey, TaskTheme> = {
   article: { ...base, kicker: 'Articles', note: 'In-depth reads, guides and stories worth your time.' },
   listing: { ...base, kicker: 'Businesses', note: 'Find, compare and connect with local businesses.' },
   classified: { ...base, kicker: 'Marketplace', note: 'Fresh offers and listings, ready to act on.' },
-  image: { ...base, kicker: 'Photos', note: 'A visual feed of standout images and galleries.' },
+  image: { ...base, kicker: 'Portfolio', note: 'A visual feed of standout images and creative galleries.' },
   sbm: { ...base, kicker: 'Bookmarks', note: 'Curated resources and links worth saving.' },
   pdf: { ...base, kicker: 'Documents', note: 'Downloadable guides, reports and references.' },
-  profile: { ...base, kicker: 'People', note: 'Discover creators, businesses and profiles.' },
+  profile: { ...base, kicker: 'Talent', note: 'Discover independent creators and their work.' },
 }
 
 export function getTaskTheme(task: TaskKey): TaskTheme {
