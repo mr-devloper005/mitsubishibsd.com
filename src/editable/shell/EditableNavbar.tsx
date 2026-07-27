@@ -1,139 +1,272 @@
 'use client'
 
-import { useMemo, useState } from 'react'
+import { useMemo, useState, useEffect } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { Menu, Search, UserPlus, LogIn, X, PlusCircle } from 'lucide-react'
+import { Menu, Search, UserPlus, LogIn, X, PlusCircle, ArrowRight } from 'lucide-react'
 import { SITE_CONFIG } from '@/lib/site-config'
 import { globalContent } from '@/editable/content/global.content'
 import { useEditableLocalAuthSession } from '@/editable/components/EditableLocalAuthForms'
 
+const SITE_LINKS = [
+  { label: 'About', href: '/about' },
+  { label: 'Search', href: '/search' },
+  { label: 'Contact', href: '/contact' },
+] as const
+
 export function EditableNavbar() {
   const [open, setOpen] = useState(false)
+  const [scrolled, setScrolled] = useState(false)
   const pathname = usePathname()
   const { session, logout } = useEditableLocalAuthSession()
-  const navItems = useMemo(
-    () => SITE_CONFIG.tasks.filter((task) => task.enabled).map((task) => ({ label: task.label, href: task.route })),
-    []
-  )
+
+  // Enabled task routes, minus any hidden from navigation, then the site pages.
+  const navItems = useMemo(() => {
+    const hidden = globalContent.hiddenNavTaskKeys as readonly string[]
+    const tasks = SITE_CONFIG.tasks
+      .filter((task) => task.enabled && !hidden.includes(task.key))
+      .map((task) => ({ label: task.label, href: task.route }))
+    return [...tasks, ...SITE_LINKS]
+  }, [])
+
+  useEffect(() => {
+    const handler = () => setScrolled(window.scrollY > 40)
+    handler()
+    window.addEventListener('scroll', handler, { passive: true })
+    return () => window.removeEventListener('scroll', handler)
+  }, [])
+
+  const isActive = (href: string) =>
+    href === '/' ? pathname === '/' : pathname === href || pathname.startsWith(`${href}/`)
 
   return (
-    <header className="sticky top-0 z-50 bg-[var(--editable-nav-bg)]/96 text-[var(--editable-nav-text)] backdrop-blur-md">
-      <div className="h-[3px] bg-[linear-gradient(90deg,transparent_0%,var(--slot4-accent)_20%,var(--slot4-accent)_80%,transparent_100%)]" />
+    <header className="sticky top-0 z-50">
+      {/* ---------- Tier 1: dark utility strip (desktop) ---------- */}
+      <div className="hidden md:block" style={{ background: 'var(--slot4-dark-bg)' }}>
+        <div className="mx-auto flex h-9 w-full max-w-[var(--editable-container)] items-center justify-between gap-4 px-5 sm:px-8">
+          <p className="text-[10px] font-bold uppercase tracking-[0.24em] text-white/35">
+            {globalContent.nav?.tagline || SITE_CONFIG.tagline}
+          </p>
 
-      <nav className="mx-auto flex min-h-[76px] w-full max-w-[var(--editable-container)] items-center gap-5 px-4 sm:px-6 lg:px-8">
-        <Link href="/" className="group flex shrink-0 items-center gap-3 border-r border-[var(--editable-border)] pr-5">
-          <span className="flex h-11 w-11 items-center justify-center border border-[var(--slot4-accent)]/45 bg-[var(--slot4-surface-bg)] transition group-hover:border-[var(--slot4-accent)]">
-            <img src="/favicon.png?v=20260413" alt={SITE_CONFIG.name} className="h-8 w-8 object-contain" />
-          </span>
-          <span className="hidden min-w-0 md:block">
-            <span className="editable-display block max-w-[200px] truncate text-xl font-semibold leading-none tracking-[0.01em]">{SITE_CONFIG.name}</span>
-            <span className="mt-1 block max-w-[200px] truncate text-[10px] font-medium uppercase tracking-[0.26em] text-[var(--slot4-muted-text)]">
-              {globalContent.nav?.tagline || SITE_CONFIG.tagline}
-            </span>
-          </span>
-        </Link>
-
-        <div className="hidden items-stretch gap-0 lg:flex">
-          {navItems.slice(0, 5).map((item) => {
-            const active = pathname === item.href || pathname.startsWith(`${item.href}/`)
-            return (
-              <Link
-                key={item.href}
-                href={item.href}
-                className={`relative flex items-center px-4 text-[11px] font-semibold uppercase tracking-[0.22em] transition ${
-                  active ? 'text-[var(--slot4-accent)]' : 'text-[var(--slot4-muted-text)] hover:text-[var(--slot4-page-text)]'
-                }`}
-              >
-                {item.label}
-                {active ? <span className="absolute inset-x-3 bottom-0 h-[2px] bg-[var(--slot4-accent)]" /> : null}
-              </Link>
-            )
-          })}
+          <div className="flex items-center gap-1">
+            {session ? (
+              <>
+                <Link
+                  href="/create"
+                  className="inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-[11px] font-bold transition hover:opacity-80"
+                  style={{ background: 'var(--slot4-accent)', color: 'var(--slot4-on-accent)' }}
+                >
+                  <PlusCircle className="h-3 w-3" /> Post
+                </Link>
+                <button
+                  type="button"
+                  onClick={logout}
+                  className="rounded-full px-3 py-1 text-[11px] font-semibold text-white/50 transition hover:text-white"
+                >
+                  Logout
+                </button>
+              </>
+            ) : (
+              <>
+                <Link
+                  href="/login"
+                  className="inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-[11px] font-semibold text-white/55 transition hover:text-white"
+                >
+                  <LogIn className="h-3 w-3" /> Sign in
+                </Link>
+                <Link
+                  href="/signup"
+                  className="inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-[11px] font-bold transition hover:opacity-80"
+                  style={{ background: 'var(--slot4-accent)', color: 'var(--slot4-on-accent)' }}
+                >
+                  <UserPlus className="h-3 w-3" /> Join free
+                </Link>
+              </>
+            )}
+          </div>
         </div>
+      </div>
 
-        <form action="/search" className="mx-auto hidden min-w-0 flex-1 justify-center md:flex">
-          <label className="flex w-full max-w-md items-center gap-2 border-b border-[var(--slot4-accent)]/30 pb-2 transition focus-within:border-[var(--slot4-accent)]">
-            <Search className="h-4 w-4 shrink-0 text-[var(--slot4-accent)]" />
+      {/* ---------- Tier 2: main bar ---------- */}
+      <div
+        className="relative transition-shadow duration-300"
+        style={{
+          background: 'var(--editable-nav-bg)',
+          borderBottom: `1px solid ${scrolled ? 'var(--editable-border)' : 'transparent'}`,
+          boxShadow: scrolled ? '0 6px 24px rgba(0,0,0,0.06)' : 'none',
+        }}
+      >
+        <nav className="mx-auto flex min-h-[68px] w-full max-w-[var(--editable-container)] items-center gap-4 px-5 sm:px-8">
+          {/* Logo */}
+          <Link href="/" className="group flex shrink-0 items-center gap-2.5 transition hover:opacity-70">
+            <img
+              src="/favicon.png?v=20260413"
+              alt=""
+              className="h-9 w-9 shrink-0 object-contain transition duration-300 group-hover:scale-105"
+              width={36}
+              height={36}
+            />
+            <span
+              className="editable-display text-xl font-black leading-none tracking-[-0.04em]"
+              style={{ color: 'var(--editable-nav-text)' }}
+            >
+              {SITE_CONFIG.name}
+            </span>
+          </Link>
+
+          {/* Pill nav group — sits in a tinted track so it reads as one unit */}
+          <div className="hidden flex-1 justify-center lg:flex">
+            <div
+              className="flex items-center gap-1 rounded-full p-1"
+              style={{ background: 'var(--slot4-panel-bg)' }}
+            >
+              {navItems.map((item) => {
+                const active = isActive(item.href)
+                return (
+                  <Link
+                    key={item.href}
+                    href={item.href}
+                    className={`rounded-full px-4 py-2 text-[13px] font-bold transition duration-200 ${
+                      active
+                        ? 'shadow-[0_2px_8px_rgba(0,0,0,0.10)]'
+                        : 'text-[var(--slot4-muted-text)] hover:bg-white/70 hover:text-[var(--slot4-page-text)]'
+                    }`}
+                    style={
+                      active
+                        ? { background: 'var(--slot4-accent)', color: 'var(--slot4-on-accent)' }
+                        : undefined
+                    }
+                  >
+                    {item.label}
+                  </Link>
+                )
+              })}
+            </div>
+          </div>
+
+          {/* Right cluster */}
+          <div className="ml-auto flex shrink-0 items-center gap-2">
+            <form
+              action="/search"
+              className="hidden items-center gap-2 rounded-full border border-[var(--editable-border)] bg-[var(--slot4-surface-bg)] px-4 py-2 transition focus-within:border-[var(--slot4-accent)] focus-within:ring-2 focus-within:ring-[var(--slot4-accent)]/25 xl:flex"
+            >
+              <Search className="h-3.5 w-3.5 shrink-0 text-[var(--slot4-muted-text)]" />
+              <input
+                name="q"
+                type="search"
+                placeholder="Search talent..."
+                className="w-32 bg-transparent text-[13px] outline-none placeholder:text-[var(--slot4-muted-text)]"
+              />
+            </form>
+
+            {/* Primary CTA — dark pill with lime text, the one high-contrast action */}
+            <Link
+              href={session ? '/create' : '/signup'}
+              className="hidden items-center gap-1.5 rounded-full px-5 py-2.5 text-[13px] font-bold transition duration-200 hover:opacity-85 active:scale-[0.98] sm:inline-flex"
+              style={{ background: 'var(--slot4-dark-bg)', color: 'var(--slot4-accent)' }}
+            >
+              {session ? 'Post your work' : 'Join free'}
+              <ArrowRight className="h-3.5 w-3.5" />
+            </Link>
+
+            <button
+              type="button"
+              onClick={() => setOpen((v) => !v)}
+              className="flex h-10 w-10 items-center justify-center rounded-full border border-[var(--editable-border)] transition hover:bg-[var(--slot4-panel-bg)] lg:hidden"
+              aria-label="Toggle menu"
+              aria-expanded={open}
+            >
+              {open ? <X className="h-4 w-4" /> : <Menu className="h-4 w-4" />}
+            </button>
+          </div>
+        </nav>
+
+        {/* Scroll progress */}
+        <div
+          className="scroll-progress-bar absolute bottom-0 left-0 h-[2px] w-full origin-left"
+          style={{ background: 'var(--slot4-accent)' }}
+          aria-hidden="true"
+        />
+      </div>
+
+      {/* ---------- Mobile drawer ---------- */}
+      {open ? (
+        <div className="border-t border-[var(--editable-border)] bg-[var(--editable-nav-bg)] px-5 py-4 shadow-[0_12px_28px_rgba(0,0,0,0.10)] lg:hidden">
+          <form
+            action="/search"
+            className="mb-4 flex items-center gap-2 rounded-full border border-[var(--editable-border)] bg-[var(--slot4-surface-bg)] px-4 py-2.5 focus-within:border-[var(--slot4-accent)]"
+          >
+            <Search className="h-4 w-4 text-[var(--slot4-muted-text)]" />
             <input
               name="q"
               type="search"
-              placeholder="Search posts"
-              className="min-w-0 flex-1 bg-transparent text-sm font-medium outline-none placeholder:text-[var(--slot4-muted-text)]"
+              placeholder="Search talent..."
+              className="flex-1 bg-transparent text-sm outline-none placeholder:text-[var(--slot4-muted-text)]"
             />
-          </label>
-        </form>
-
-        <div className="ml-auto flex shrink-0 items-center gap-2">
-          {session ? (
-            <>
-              <Link
-                href="/create"
-                className="hidden items-center gap-2 border border-[var(--slot4-accent)] bg-[var(--editable-cta-bg)] px-4 py-2 text-[11px] font-semibold uppercase tracking-[0.18em] text-[var(--editable-cta-text)] transition hover:opacity-90 sm:inline-flex"
-              >
-                <PlusCircle className="h-3.5 w-3.5" /> Create
-              </Link>
-              <button
-                type="button"
-                onClick={logout}
-                className="hidden items-center gap-2 px-3 py-2 text-[11px] font-semibold uppercase tracking-[0.18em] text-[var(--slot4-muted-text)] transition hover:text-[var(--slot4-page-text)] sm:inline-flex"
-              >
-                Logout
-              </button>
-            </>
-          ) : (
-            <>
-              <Link
-                href="/login"
-                className="hidden items-center gap-2 border border-[var(--editable-border)] px-3 py-2 text-[11px] font-semibold uppercase tracking-[0.18em] text-[var(--slot4-muted-text)] transition hover:border-[var(--slot4-accent)]/40 hover:text-[var(--slot4-page-text)] sm:inline-flex"
-              >
-                <LogIn className="h-3.5 w-3.5" /> Login
-              </Link>
-              <Link
-                href="/signup"
-                className="hidden items-center gap-2 border border-[var(--slot4-accent)] bg-[var(--editable-cta-bg)] px-4 py-2 text-[11px] font-semibold uppercase tracking-[0.18em] text-[var(--editable-cta-text)] transition hover:opacity-90 sm:inline-flex"
-              >
-                <UserPlus className="h-3.5 w-3.5" /> Sign up
-              </Link>
-            </>
-          )}
-          <button
-            type="button"
-            onClick={() => setOpen((value) => !value)}
-            className="border border-[var(--editable-border)] bg-[var(--slot4-surface-bg)] p-2 lg:hidden"
-            aria-label="Toggle menu"
-          >
-            {open ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
-          </button>
-        </div>
-      </nav>
-
-      <div className="h-px bg-[var(--editable-border)]" />
-
-      {open ? (
-        <div className="border-t border-[var(--editable-border)] bg-[var(--editable-nav-bg)] px-4 py-5 lg:hidden">
-          <form action="/search" className="mb-5 flex items-center gap-2 border-b border-[var(--slot4-accent)]/30 pb-2">
-            <Search className="h-4 w-4 text-[var(--slot4-accent)]" />
-            <input name="q" type="search" placeholder="Search posts" className="min-w-0 flex-1 bg-transparent text-sm outline-none placeholder:text-[var(--slot4-muted-text)]" />
           </form>
-          <div className="grid gap-1">
-            {[{ label: 'Home', href: '/' }, ...navItems, { label: 'Contact', href: '/contact' }, ...(session ? [{ label: 'Create', href: '/create' }] : [{ label: 'Login', href: '/login' }, { label: 'Sign up', href: '/signup' }])].map((item) => {
-              const active = pathname === item.href || pathname.startsWith(`${item.href}/`)
+
+          <div className="flex flex-col gap-1">
+            {[{ label: 'Home', href: '/' }, ...navItems].map((item) => {
+              const active = isActive(item.href)
               return (
                 <Link
                   key={item.href}
                   href={item.href}
                   onClick={() => setOpen(false)}
-                  className={`border-l-2 px-4 py-3 text-sm font-semibold uppercase tracking-[0.16em] ${
+                  className="rounded-xl px-4 py-3 text-sm font-bold transition"
+                  style={
                     active
-                      ? 'border-[var(--slot4-accent)] bg-[var(--slot4-surface-bg)] text-[var(--slot4-accent)]'
-                      : 'border-transparent text-[var(--slot4-muted-text)] hover:border-[var(--slot4-accent)]/40 hover:bg-[var(--slot4-surface-bg)]'
-                  }`}
+                      ? { background: 'var(--slot4-accent)', color: 'var(--slot4-on-accent)' }
+                      : { color: 'var(--slot4-page-text)' }
+                  }
                 >
                   {item.label}
                 </Link>
               )
             })}
+          </div>
+
+          <div className="mt-4 flex flex-col gap-2 border-t border-[var(--editable-border)] pt-4">
+            {session ? (
+              <>
+                <Link
+                  href="/create"
+                  onClick={() => setOpen(false)}
+                  className="rounded-full px-5 py-3 text-center text-sm font-bold"
+                  style={{ background: 'var(--slot4-accent)', color: 'var(--slot4-on-accent)' }}
+                >
+                  Post your work
+                </Link>
+                <button
+                  type="button"
+                  onClick={() => {
+                    logout()
+                    setOpen(false)
+                  }}
+                  className="rounded-full border border-[var(--editable-border)] px-5 py-3 text-sm font-bold text-[var(--slot4-muted-text)]"
+                >
+                  Logout
+                </button>
+              </>
+            ) : (
+              <>
+                <Link
+                  href="/signup"
+                  onClick={() => setOpen(false)}
+                  className="rounded-full px-5 py-3 text-center text-sm font-bold"
+                  style={{ background: 'var(--slot4-accent)', color: 'var(--slot4-on-accent)' }}
+                >
+                  Join free
+                </Link>
+                <Link
+                  href="/login"
+                  onClick={() => setOpen(false)}
+                  className="rounded-full border border-[var(--editable-border)] px-5 py-3 text-center text-sm font-bold text-[var(--slot4-page-text)]"
+                >
+                  Sign in
+                </Link>
+              </>
+            )}
           </div>
         </div>
       ) : null}

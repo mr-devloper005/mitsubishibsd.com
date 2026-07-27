@@ -9,10 +9,9 @@ import { EditableSiteShell } from '@/editable/shell/EditableSiteShell'
 
 const tone = {
   shell: 'bg-[var(--slot4-page-bg)] text-[var(--slot4-page-text)]',
-  panel: 'border border-[var(--editable-border)] bg-[var(--slot4-surface-bg)]',
-  soft: 'border border-[var(--editable-border)] bg-[var(--slot4-panel-bg)]',
+  container: 'mx-auto w-full max-w-[var(--editable-container)] px-5 sm:px-8 lg:px-12',
+  eyebrow: 'text-[11px] font-bold uppercase tracking-[0.24em] text-[var(--slot4-muted-text)]',
   muted: 'text-[var(--slot4-muted-text)]',
-  action: 'bg-[var(--slot4-accent-fill)] text-[var(--slot4-on-accent)] hover:opacity-90',
 }
 
 function getLanes(kind: ReturnType<typeof getProductKind>) {
@@ -51,26 +50,72 @@ export default function ContactPage() {
 
   return (
     <EditableSiteShell className={tone.shell}>
-      <main className="mx-auto max-w-7xl px-4 py-14 sm:px-6 lg:px-8">
-        <section className="grid gap-8 lg:grid-cols-[0.95fr_1.05fr] lg:items-start">
-          <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.24em] text-[var(--slot4-accent)]">{pagesContent.contact.eyebrow}</p>
-            <h1 className="editable-display mt-4 text-5xl font-semibold tracking-[-0.02em]">{pagesContent.contact.title}</h1>
-            <p className={`mt-5 max-w-2xl text-sm leading-8 ${tone.muted}`}>{pagesContent.contact.description}</p>
-            <div className="mt-8 space-y-4">
-              {lanes.map((lane) => (
-                <div key={lane.title} className={`rounded-sm p-5 ${tone.soft}`}>
-                  <lane.icon className="h-5 w-5 text-[var(--slot4-accent)]" />
-                  <h2 className="editable-display mt-3 text-xl font-semibold">{lane.title}</h2>
-                  <p className={`mt-2 text-sm leading-7 ${tone.muted}`}>{lane.body}</p>
-                </div>
-              ))}
-            </div>
-          </div>
+      <main>
+        <section className={`${tone.container} py-14 sm:py-16`}>
+          <div className="grid gap-6 lg:grid-cols-[1.05fr_0.95fr] lg:gap-10 lg:items-start">
+            <div className="min-w-0">
+              <span
+                className="inline-flex items-center rounded-full px-3 py-1 text-[10px] font-bold uppercase tracking-[0.18em]"
+                style={{ background: 'var(--slot4-accent)', color: 'var(--slot4-on-accent)' }}
+              >
+                {pagesContent.contact.eyebrow}
+              </span>
+              <h1
+                className="editable-display mt-6 font-black leading-[0.98] tracking-[-0.04em]"
+                style={{ fontSize: 'clamp(2rem,5vw,3.5rem)' }}
+              >
+                {pagesContent.contact.title}
+              </h1>
+              <p className={`mt-6 max-w-2xl text-base leading-7 ${tone.muted}`}>{pagesContent.contact.description}</p>
 
-          <div className={`rounded-sm p-7 ${tone.panel}`}>
-            <h2 className="editable-display text-2xl font-semibold">{pagesContent.contact.formTitle}</h2>
-            <EditableContactLeadForm />
+              <div className="mt-10 rounded-2xl bg-[var(--slot4-dark-bg)] p-6 text-[var(--slot4-dark-text)] sm:p-8">
+                <div className="flex flex-wrap items-baseline justify-between gap-2 border-b border-white/15 pb-4">
+                  <span className="text-[11px] font-bold uppercase tracking-[0.24em] text-[var(--slot4-accent)]">Support lanes</span>
+                  <span className="text-[11px] font-bold uppercase tracking-[0.24em] text-[var(--slot4-dark-text)]/50">
+                    {String(lanes.length).padStart(2, '0')} channels
+                  </span>
+                </div>
+                <ul className="divide-y divide-white/10">
+                  {lanes.map((lane, index) => (
+                    <li key={lane.title} className="flex gap-4 py-5">
+                      <span
+                        className="mt-0.5 inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full"
+                        style={{ background: 'var(--slot4-accent)', color: 'var(--slot4-on-accent)' }}
+                      >
+                        <lane.icon className="h-4 w-4" />
+                      </span>
+                      <div className="min-w-0">
+                        <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
+                          <span className="text-[11px] font-bold uppercase tracking-[0.24em] text-[var(--slot4-dark-text)]/45">
+                            {`N°00${index + 1}`}
+                          </span>
+                          <h2 className="editable-display text-lg font-black tracking-[-0.03em] sm:text-xl">{lane.title}</h2>
+                        </div>
+                        <p className="mt-2 text-sm leading-7 text-[var(--slot4-dark-text)]/70">{lane.body}</p>
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            </div>
+
+            <div className="min-w-0">
+              <div className="flex flex-wrap items-baseline justify-between gap-2 border-b border-[var(--editable-border)] pb-3">
+                <span className={tone.eyebrow}>N°000</span>
+                <span className="text-[11px] font-bold uppercase tracking-[0.24em] text-[var(--slot4-soft-muted-text)]">
+                  Direct message
+                </span>
+              </div>
+              <h2 className="editable-display mt-5 text-2xl font-black tracking-[-0.04em] sm:text-3xl">
+                {pagesContent.contact.formTitle}
+              </h2>
+              <p className={`mt-3 text-sm leading-7 ${tone.muted}`}>
+                Fill in the three short steps below and we will reply from the matching lane.
+              </p>
+              <div className="mt-6">
+                <EditableContactLeadForm />
+              </div>
+            </div>
           </div>
         </section>
       </main>
