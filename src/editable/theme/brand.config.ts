@@ -12,8 +12,13 @@ export const slot4BrandConfig = {
   baseUrl: siteIdentity.url,
   productKind,
   ogImage: siteIdentity.ogImage,
+  // Mirrors the canonical tokens in layouts/design-contract.ts. `onPrimary` is
+  // dark because the lime primary is a light color — light text on it fails contrast.
   accents: {
-    primary: '#d32323',
-    surface: '#ffffff',
+    primary: '#a8ff5c',
+    onPrimary: '#0d0d0d',
+    // Text-safe variant of the primary, for accent-colored text on light surfaces.
+    primaryInk: '#355c14',
+    surface: '#faf8f3',
   },
 } as const

@@ -1,6 +1,7 @@
 import { slot4BrandConfig } from './brand.config'
 
 export type Slot4VisualPreset =
+  | 'lime-directory'
   | 'editorial-paper'
   | 'luxury-atelier'
   | 'brutalist-index'
@@ -10,6 +11,25 @@ export type Slot4VisualPreset =
   | 'visual-gallery'
 
 export const visualPresets = {
+  // The preset this site actually ships. Canonical values live in
+  // layouts/design-contract.ts (editableRootStyle) — this entry documents them.
+  // NOTE: `accent` is a LIGHT color, so it is only legible as a fill or on dark
+  // surfaces. For accent-colored text on light surfaces use `accentInk`.
+  'lime-directory': {
+    label: 'Lime Directory',
+    mood: 'bold Swiss editorial directory',
+    fontDirection: 'Plus Jakarta Sans black display with DM Sans body',
+    colors: {
+      background: '#f0ece5',
+      foreground: '#0d0d0d',
+      muted: '#6b6560',
+      primary: '#18221e',
+      accent: '#a8ff5c',
+      accentInk: '#355c14',
+      surface: '#faf8f3',
+    },
+    shape: 'rounded-2xl cards, pill buttons, hairline rules, ghost numerals',
+  },
   'editorial-paper': {
     label: 'Editorial Paper',
     mood: 'calm magazine authority',
@@ -112,7 +132,14 @@ export const visualPresets = {
 
 export const visualSystem = {
   productKind: slot4BrandConfig.productKind,
-  recommendedPreset: 'tech-directory',
+  recommendedPreset: 'lime-directory',
+  /*
+    The tokens below are a STABLE BASELINE guarded by
+    __tests__/editable/theme-contract.test.ts — they are deliberately generic and
+    are not what the site renders. Do not "align" them to the shipped design:
+    layout.page must keep `max-w-7xl` and typography.heroTitle must keep `text-5xl`.
+    The real, rendered values live in layouts/design-contract.ts.
+  */
   radius: {
     sm: '0.75rem',
     md: '1.25rem',

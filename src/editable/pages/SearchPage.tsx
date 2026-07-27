@@ -1,6 +1,6 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
-import { ArrowRight, Filter, Search } from 'lucide-react'
+import { ArrowRight, Filter, Search, SearchX } from 'lucide-react'
 import { buildPageMetadata } from '@/lib/seo'
 import { fetchSiteFeed } from '@/lib/site-connector'
 import { getPostTaskKey } from '@/lib/task-data'
@@ -59,6 +59,10 @@ const matches = (post: SitePost, query: string, category: string, task: string) 
     .some((value) => compactText(value).includes(query))
 }
 
+const container = 'mx-auto w-full max-w-[var(--editable-container)] px-5 sm:px-8 lg:px-12'
+const eyebrow = 'text-[11px] font-bold uppercase tracking-[0.24em]'
+const ordinalOf = (index: number) => `N°${String(index + 1).padStart(3, '0')}`
+
 function SearchResultCard({ post, index }: { post: SitePost; index: number }) {
   const task = getPostTaskKey(post) as TaskKey | null
   // Route from the task config (e.g. /listing/<slug>); buildPostUrl can fall
@@ -69,21 +73,57 @@ function SearchResultCard({ post, index }: { post: SitePost; index: number }) {
   const summary = summaryOf(post)
   const taskLabel = SITE_CONFIG.tasks.find((item) => item.key === task)?.label || 'Post'
   const strong = index % 5 === 0
+  const ordinal = ordinalOf(index)
 
   return (
-    <Link href={href} className={`group block overflow-hidden rounded-[2rem] border border-[var(--editable-border)] bg-white shadow-sm transition hover:-translate-y-1 hover:shadow-2xl ${strong ? 'md:col-span-2' : ''}`}>
-      {image ? (
-        <div className={`relative overflow-hidden bg-black ${strong ? 'aspect-[16/7]' : 'aspect-[16/10]'}`}>
-          <img src={image} alt="" className="h-full w-full object-cover opacity-90 transition duration-500 group-hover:scale-105" />
-          <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent" />
-          <span className="absolute left-4 top-4 rounded-full bg-white px-3 py-1 text-[11px] font-black uppercase tracking-[0.18em] text-black">{taskLabel}</span>
+    <Link
+      href={href}
+      className={`group flex min-w-0 flex-col overflow-hidden rounded-2xl border border-[var(--editable-border)] bg-[var(--slot4-surface-bg)] transition duration-300 hover:-translate-y-1.5 hover:shadow-[0_12px_36px_rgba(0,0,0,0.12)] ${strong ? 'md:col-span-2' : ''}`}
+    >
+      <div className={`relative w-full overflow-hidden bg-[var(--slot4-media-bg)] ${strong ? 'aspect-[16/8] sm:aspect-[16/7]' : 'aspect-[16/10]'}`}>
+        {image ? (
+          <>
+            <img src={image} alt="" className="h-full w-full object-cover transition duration-500 group-hover:scale-[1.04]" />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/55 via-black/10 to-transparent" />
+          </>
+        ) : (
+          <span
+            className="editable-display absolute inset-0 flex items-center justify-center font-black leading-none tracking-[-0.04em] text-[var(--editable-border)]"
+            style={{ fontSize: 'clamp(2.5rem,10vw,5rem)' }}
+          >
+            {ordinal}
+          </span>
+        )}
+        <span
+          className="absolute left-4 top-4 rounded-full px-3 py-1 text-[10px] font-bold uppercase tracking-[0.18em]"
+          style={strong
+            ? { background: 'var(--slot4-accent)', color: 'var(--slot4-on-accent)' }
+            : { background: 'var(--slot4-surface-bg)', color: 'var(--slot4-page-text)' }}
+        >
+          {taskLabel}
+        </span>
+      </div>
+
+      <div className="flex min-w-0 flex-1 flex-col p-5 sm:p-6">
+        <div className={`flex items-center justify-between gap-3 border-b border-[var(--editable-border)] pb-3 ${eyebrow} text-[var(--slot4-soft-muted-text)]`}>
+          <span>{ordinal}</span>
+          <span className="truncate">{strong ? 'Featured result' : 'Result'}</span>
         </div>
-      ) : null}
-      <div className="p-5 sm:p-6">
-        {!image ? <span className="rounded-full bg-[var(--editable-page-text,#211713)] px-3 py-1 text-[11px] font-black uppercase tracking-[0.18em] text-white">{taskLabel}</span> : null}
-        <h2 className="mt-4 line-clamp-3 text-2xl font-black leading-[0.95] tracking-[-0.06em] text-[var(--editable-page-text,#211713)]">{post.title}</h2>
-        {summary ? <p className="mt-4 line-clamp-3 text-sm font-semibold leading-7 text-[var(--editable-page-text,#211713)]/65">{summary}</p> : null}
-        <span className="mt-5 inline-flex items-center gap-2 text-xs font-black uppercase tracking-[0.18em] opacity-60 group-hover:opacity-100">Open result <ArrowRight className="h-4 w-4" /></span>
+
+        <h2
+          className={`editable-display mt-4 line-clamp-3 font-black leading-[1.08] tracking-[-0.04em] text-[var(--slot4-page-text)] ${strong ? 'text-2xl sm:text-3xl' : 'text-xl'}`}
+        >
+          {post.title}
+        </h2>
+
+        {summary ? (
+          <p className={`mt-3 text-sm leading-7 text-[var(--slot4-muted-text)] ${strong ? 'line-clamp-2' : 'line-clamp-3'}`}>{summary}</p>
+        ) : null}
+
+        <span className={`mt-auto inline-flex items-center gap-2 pt-6 ${eyebrow} text-[var(--slot4-muted-text)] transition group-hover:text-[var(--slot4-page-text)]`}>
+          Open result
+          <ArrowRight className="h-4 w-4 transition group-hover:translate-x-1" />
+        </span>
       </div>
     </Link>
   )
@@ -99,56 +139,151 @@ export default async function SearchPage({ searchParams }: { searchParams?: Prom
   const feed = await fetchSiteFeed(useMaster ? 1000 : 300, useMaster ? { fresh: true, category: category || undefined, task: task || undefined } : undefined)
   const posts = feed?.posts?.length ? feed.posts : useMaster ? [] : SITE_CONFIG.tasks.filter((item) => item.enabled).flatMap((item) => getMockPostsForTask(item.key))
   const results = posts.filter((post) => matches(post, normalized, category, task)).slice(0, normalized ? 80 : 36)
-  const enabledTasks = SITE_CONFIG.tasks.filter((item) => item.enabled)
+  // Primary browse target — the first enabled task, so the CTA never points at a disabled section.
+  const browseRoute = SITE_CONFIG.tasks.find((item) => item.enabled)?.route || '/'
 
   return (
     <EditableSiteShell>
-      <main className="min-h-screen bg-[var(--editable-page-bg,#fff7ee)] text-[var(--editable-page-text,#2f1d16)]">
-        <section className="mx-auto max-w-[var(--editable-container)] px-4 py-10 sm:px-6 lg:px-8 lg:py-16">
-          <div className="grid gap-8 rounded-[2.5rem] border border-[var(--editable-border)] bg-white/70 p-6 shadow-[0_30px_90px_rgba(15,23,42,0.08)] backdrop-blur md:grid-cols-[0.8fr_1.2fr] lg:p-10">
-            <div>
-              <p className="text-xs font-black uppercase tracking-[0.28em] opacity-55">{pagesContent.search.hero.badge}</p>
-              <h1 className="mt-5 text-5xl font-black leading-[0.92] tracking-[-0.08em] sm:text-7xl">{pagesContent.search.hero.title}</h1>
-              <p className="mt-6 max-w-xl text-base font-semibold leading-8 opacity-70">{pagesContent.search.hero.description}</p>
+      <main className="min-h-screen bg-[var(--slot4-page-bg)] text-[var(--slot4-page-text)]">
+        {/* Editorial rule header */}
+        <div className={container}>
+          <div className={`flex items-center justify-between gap-4 border-b border-[var(--editable-border)] py-5 ${eyebrow} text-[var(--slot4-muted-text)]`}>
+            <span>N°001</span>
+            <span className="truncate">{pagesContent.search.hero.badge}</span>
+          </div>
+        </div>
+
+        {/* Search-first hero */}
+        <section className={`${container} py-14 sm:py-16`}>
+          <div className="grid gap-10 lg:grid-cols-[1.05fr_0.95fr] lg:items-end">
+            <div className="min-w-0">
+              <p className={eyebrow} style={{ color: 'var(--slot4-accent-ink)' }}>{pagesContent.search.hero.badge}</p>
+              <h1
+                className="editable-display mt-4 font-black leading-[1] tracking-[-0.04em]"
+                style={{ fontSize: 'clamp(2rem,5vw,4rem)' }}
+              >
+                {pagesContent.search.hero.title}
+              </h1>
+              <p className="mt-5 max-w-xl text-base leading-7 text-[var(--slot4-muted-text)]">{pagesContent.search.hero.description}</p>
             </div>
-            <form action="/search" className="self-end rounded-[2rem] border border-[var(--editable-border)] bg-[var(--editable-page-bg,#fff7ee)] p-4 sm:p-5">
+
+            <form action="/search" className="min-w-0 rounded-2xl border border-[var(--editable-border)] bg-[var(--slot4-surface-bg)] p-5 sm:p-7">
               <input type="hidden" name="master" value="1" />
-              <label className="flex items-center gap-3 rounded-2xl border border-[var(--editable-border)] bg-white px-4 py-3">
-                <Search className="h-5 w-5 opacity-45" />
-                <input name="q" defaultValue={query} placeholder={pagesContent.search.hero.placeholder} className="min-w-0 flex-1 bg-transparent text-base font-bold outline-none placeholder:text-current/35" />
+
+              <p className={`${eyebrow} text-[var(--slot4-muted-text)]`}>Search the index</p>
+
+              <label className="mt-4 flex items-center gap-3 rounded-full border border-[var(--editable-border)] bg-[var(--slot4-page-bg)] px-5 py-3 transition focus-within:border-[var(--slot4-accent)] focus-within:ring-2 focus-within:ring-[var(--slot4-accent)]/25">
+                <Search className="h-4 w-4 shrink-0 text-[var(--slot4-soft-muted-text)]" />
+                <input
+                  name="q"
+                  defaultValue={query}
+                  placeholder={pagesContent.search.hero.placeholder}
+                  aria-label="Search keyword"
+                  className="min-w-0 flex-1 bg-transparent text-sm font-medium text-[var(--slot4-page-text)] outline-none placeholder:text-[var(--slot4-soft-muted-text)]"
+                />
               </label>
-              <div className="mt-3 grid gap-3 sm:grid-cols-2">
-                <label className="flex items-center gap-2 rounded-2xl border border-[var(--editable-border)] bg-white px-4 py-3">
-                  <Filter className="h-4 w-4 opacity-45" />
-                  <input name="category" defaultValue={category} placeholder="Category" className="min-w-0 flex-1 bg-transparent text-sm font-bold outline-none placeholder:text-current/35" />
-                </label>
-                <select name="task" defaultValue={task} className="rounded-2xl border border-[var(--editable-border)] bg-white px-4 py-3 text-sm font-black outline-none">
-                  <option value="">All content types</option>
-                  {enabledTasks.map((item) => <option key={item.key} value={item.key}>{item.label}</option>)}
-                </select>
-              </div>
-              <button className="mt-3 inline-flex h-12 w-full items-center justify-center rounded-2xl bg-[var(--editable-page-text,#2f1d16)] px-6 text-sm font-black uppercase tracking-[0.18em] text-[var(--editable-page-bg,#fff7ee)] transition hover:-translate-y-0.5" type="submit">Search</button>
+
+              <label className="mt-3 flex items-center gap-3 rounded-full border border-[var(--editable-border)] bg-[var(--slot4-page-bg)] px-5 py-3 transition focus-within:border-[var(--slot4-accent)] focus-within:ring-2 focus-within:ring-[var(--slot4-accent)]/25">
+                <Filter className="h-4 w-4 shrink-0 text-[var(--slot4-soft-muted-text)]" />
+                <input
+                  name="category"
+                  defaultValue={category}
+                  placeholder="Category"
+                  aria-label="Category"
+                  className="min-w-0 flex-1 bg-transparent text-sm font-medium text-[var(--slot4-page-text)] outline-none placeholder:text-[var(--slot4-soft-muted-text)]"
+                />
+              </label>
+
+              <button
+                type="submit"
+                className="mt-4 inline-flex w-full items-center justify-center gap-2 rounded-full px-6 py-3 text-sm font-bold transition hover:opacity-80 active:scale-[0.98]"
+                style={{ background: 'var(--slot4-accent)', color: 'var(--slot4-on-accent)' }}
+              >
+                Search <ArrowRight className="h-4 w-4" />
+              </button>
             </form>
           </div>
+        </section>
 
-          <div className="mt-10 flex flex-wrap items-end justify-between gap-4">
-            <div>
-              <p className="text-xs font-black uppercase tracking-[0.24em] opacity-50">{results.length} results</p>
-              <h2 className="mt-2 text-3xl font-black tracking-[-0.06em]">{query ? `Results for “${query}”` : pagesContent.search.resultsTitle}</h2>
+        {/* Results */}
+        <section className="border-t border-[var(--editable-border)] bg-[var(--slot4-panel-bg)]">
+          <div className={`${container} py-14 sm:py-16`}>
+            <div className="flex flex-wrap items-end justify-between gap-6 border-b border-[var(--editable-border)] pb-6">
+              <div className="flex min-w-0 items-end gap-4 sm:gap-6">
+                <span
+                  className="editable-display hidden shrink-0 font-black leading-none tracking-[-0.04em] text-[var(--editable-border)] sm:block"
+                  style={{ fontSize: 'clamp(3rem,6vw,5rem)' }}
+                >
+                  02
+                </span>
+                <div className="min-w-0">
+                  <p className={`${eyebrow} text-[var(--slot4-muted-text)]`}>{results.length} results</p>
+                  <h2
+                    className="editable-display mt-2 font-black leading-[1.05] tracking-[-0.04em]"
+                    style={{ fontSize: 'clamp(1.5rem,3.5vw,2.5rem)' }}
+                  >
+                    {query ? `Results for “${query}”` : pagesContent.search.resultsTitle}
+                  </h2>
+                </div>
+              </div>
+
+              <Link
+                href={browseRoute}
+                className="inline-flex items-center gap-2 rounded-full border border-[var(--editable-border)] bg-[var(--slot4-surface-bg)] px-6 py-3 text-sm font-bold text-[var(--slot4-page-text)] transition hover:border-[var(--slot4-accent)]"
+              >
+                Browse latest <ArrowRight className="h-4 w-4" />
+              </Link>
             </div>
-            <Link href="/article" className="inline-flex items-center gap-2 rounded-full border border-[var(--editable-border)] bg-white px-5 py-3 text-sm font-black">Browse latest <ArrowRight className="h-4 w-4" /></Link>
+
+            {results.length ? (
+              <div className="mt-8 grid gap-6 md:grid-cols-2 xl:grid-cols-3">
+                {results.map((post, index) => <SearchResultCard key={post.id || post.slug} post={post} index={index} />)}
+              </div>
+            ) : (
+              <div className="mt-8 rounded-2xl border border-dashed border-[var(--editable-border)] bg-[var(--slot4-surface-bg)] p-8 text-center sm:p-14">
+                <span className="inline-flex h-14 w-14 items-center justify-center rounded-full bg-[var(--slot4-panel-bg)] text-[var(--slot4-muted-text)]">
+                  <SearchX className="h-6 w-6" />
+                </span>
+                <p
+                  className="editable-display mt-6 font-black leading-[1.1] tracking-[-0.04em]"
+                  style={{ fontSize: 'clamp(1.5rem,3.5vw,2.25rem)' }}
+                >
+                  No matching posts found.
+                </p>
+                <p className="mx-auto mt-3 max-w-md text-sm leading-7 text-[var(--slot4-muted-text)]">Try a different keyword or category.</p>
+                <Link
+                  href={browseRoute}
+                  className="mt-7 inline-flex items-center gap-2 rounded-full border border-[var(--editable-border)] bg-[var(--slot4-surface-bg)] px-6 py-3 text-sm font-bold text-[var(--slot4-page-text)] transition hover:border-[var(--slot4-accent)]"
+                >
+                  Browse latest <ArrowRight className="h-4 w-4" />
+                </Link>
+              </div>
+            )}
           </div>
+        </section>
 
-          {results.length ? (
-            <div className="mt-6 grid gap-5 md:grid-cols-2 xl:grid-cols-3">
-              {results.map((post, index) => <SearchResultCard key={post.id || post.slug} post={post} index={index} />)}
+        {/* Closing dark band */}
+        <section style={{ background: 'var(--slot4-dark-bg)', color: 'var(--slot4-dark-text)' }}>
+          <div className={`${container} py-14 sm:py-16`}>
+            <div className="flex flex-wrap items-end justify-between gap-8">
+              <div className="min-w-0 max-w-2xl">
+                <p className={eyebrow} style={{ color: 'var(--slot4-accent)' }}>N°003 — Keep exploring</p>
+                <h2
+                  className="editable-display mt-4 font-black leading-[1.05] tracking-[-0.04em]"
+                  style={{ fontSize: 'clamp(1.75rem,4vw,3rem)' }}
+                >
+                  Still looking? Browse every active section of the archive.
+                </h2>
+              </div>
+              <Link
+                href={browseRoute}
+                className="inline-flex items-center gap-2 rounded-full px-6 py-3 text-sm font-bold transition hover:opacity-80 active:scale-[0.98]"
+                style={{ background: 'var(--slot4-accent)', color: 'var(--slot4-on-accent)' }}
+              >
+                Browse latest <ArrowRight className="h-4 w-4" />
+              </Link>
             </div>
-          ) : (
-            <div className="mt-8 rounded-[2rem] border border-dashed border-[var(--editable-border)] bg-white/70 p-10 text-center">
-              <p className="text-2xl font-black tracking-[-0.04em]">No matching posts found.</p>
-              <p className="mt-3 text-sm font-semibold opacity-60">Try a different keyword, task type, or category.</p>
-            </div>
-          )}
+          </div>
         </section>
       </main>
     </EditableSiteShell>
