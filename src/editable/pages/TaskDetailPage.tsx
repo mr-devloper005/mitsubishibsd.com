@@ -837,7 +837,7 @@ function ProfileDetail({ post, related }: { post: SitePost; related: SitePost[] 
                 <BadgeLine label="Directory" value={getTaskConfig('profile')?.label || 'People'} />
               </div>
             </div>
-            <ContactAction website={website} phone={phone} email={email} />
+            <ContactAction phone={phone} email={email} />
           </aside>
         </div>
       </section>
