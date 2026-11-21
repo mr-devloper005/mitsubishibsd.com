@@ -115,13 +115,11 @@ const mapSrcFor = (post: SitePost) => {
 }
 
 // Purely presentational date label — always guarded so posts without dates render fine.
-const dateLabel = (post: SitePost) => {
-  const raw = post.publishedAt || post.createdAt || ''
-  if (!raw) return ''
-  const date = new Date(raw)
-  if (Number.isNaN(date.getTime())) return ''
-  return date.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })
-}
+// This site does not show a publish date on post pages. Returning '' is what switches it
+// off everywhere at once: MetaPanel drops rows whose value is empty (see its `rows.filter`)
+// and every other caller is already guarded by a truthiness check, so no empty row or
+// stray label is left behind.
+const dateLabel = (_post: SitePost) => ''
 
 const tagsOf = (post: SitePost, limit = 8) =>
   (Array.isArray(post.tags) ? post.tags : [])
